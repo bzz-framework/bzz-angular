@@ -13,6 +13,8 @@
     <!-- build:css(.tmp) styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
+    <!-- build:css(.tmp) styles/bzz.angular.css -->
+    <!-- endbuild -->
   </head>
   <body ng-app="bzzAngularApp">
     <!--[if lt IE 7]>
@@ -69,12 +71,14 @@
     <!-- endbower -->
     <!-- endbuild -->
 
-        <!-- build:js({.tmp,app}) scripts/scripts.js -->
-        <script src="scripts/app.js"></script>
-        <script src="scripts/controllers/main.js"></script>
-        <script src="scripts/controllers/about.js"></script>
-        <script src="scripts/services/authservice.js"></script>
-        <script src="scripts/services/auth-service.js"></script>
-        <!-- endbuild -->
+    <!-- build:js({.tmp,app}) scripts/scripts.js -->
+    <script src="scripts/app.js"></script>
+    <script src="scripts/controllers/main.js"></script>
+    <script src="scripts/controllers/about.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/bzz.angular.js -->
+    <script src="scripts/services/auth-service.js"></script>
+    <!-- endbuild -->
 </body>
 </html>
