@@ -21,6 +21,7 @@ module.exports = (config) ->
       'bower_components/angular-route/angular-route.js'
       'bower_components/angular-sanitize/angular-sanitize.js'
       'bower_components/angular-touch/angular-touch.js'
+      'bower_components/jasmine.async/lib/jasmine.async.min.js'
       'app/scripts/**/*.coffee'
       'test/mock/**/*.coffee'
       'test/spec/**/*.coffee'
@@ -45,15 +46,22 @@ module.exports = (config) ->
     # - PhantomJS
     # - IE (only Windows)
     browsers: [
-      'PhantomJS'
+      'Chrome'
     ]
 
     # Which plugins to enable
-    plugins: [
-      'karma-phantomjs-launcher'
-      'karma-jasmine'
-      'karma-coffee-preprocessor'
-    ]
+    #plugins: [
+      #'karma-chrome-launcher'
+      #'karma-jasmine'
+      #'karma-coffee-preprocessor'
+    #]
+
+    coffeePreprocessor:
+      options:
+        bare: true,
+        sourceMap: true
+      transformPath: (path) ->
+        path.replace(/\.coffee$/, '.js')
 
     # enable / disable watching file and executing tests whenever any file changes
     autoWatch: true
