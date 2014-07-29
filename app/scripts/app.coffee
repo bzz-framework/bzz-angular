@@ -15,9 +15,10 @@ angular
     'ngResource',
     'ngRoute',
     'ngSanitize',
-    'ngTouch'
+    'ngTouch',
+    'googleplus'
   ])
-  .config ($routeProvider) ->
+  .config ($routeProvider, GooglePlusProvider) ->
     $routeProvider
       .when '/',
         templateUrl: 'views/main.html'
@@ -27,4 +28,8 @@ angular
         controller: 'AboutCtrl'
       .otherwise
         redirectTo: '/'
+
+    GooglePlusProvider.init
+      clientId: 'YOUR_CLIENT_ID',
+      apiKey: 'YOUR_API_KEY'
 

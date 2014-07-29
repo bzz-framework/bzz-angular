@@ -1,83 +1,8 @@
 'use strict'
 
-# class AuthService
-#   constructor: (@rootScope) ->
-#     @getAuthenticationFlags()
-#     @bindEvents()
-# 
-#   bindEvents: ->
-#     @rootScope.$on('unauthorizedRequest', (event) =>
-#       @logout()
-#     )
-#     @rootScope.$on('$locationChangeStart', (e, n, p) =>
-#       @getAuthenticationFlags()
-#     )
-# 
-#   getAuthentication: ->
-#     @restangular.one('authenticate').get()
-# 
-#   removeAuthentication: ->
-#     @restangular.one('authenticate').remove()
-# 
-#   authenticate: (data) ->
-#     @restangular.all('authenticate').post(data)
-# 
-#   getAuthenticationFlags: ->
-#     @getAuthentication().then((response) =>
-#       @rootScope.isLoggedIn = response.authenticated
-#       @rootScope.isSuperUser = response.isSuperUser
-#       @logoutIfNotAuthenticated()
-#     )
-# 
-#   logoutIfNotAuthenticated: ->
-#     if @rootScope.isLoggedIn is false
-#       @logout()
-# 
-#   redirectIfAuthenticated: ->
-#     if @rootScope.isLoggedIn is true
-#       @location.url '/'
-# 
-#   redirectIfNotSuperUser: (path) ->
-#     if @rootScope.isSuperUser is false
-#       @location.url path
-# 
-#   logout: ->
-#     @removeAuthentication().then((result) =>
-#       if result.loggedOut
-#         @rootScope.isLoggedIn = false
-#         @location.url "/login"
-#     )
-# 
-#   googleLogin: ->
-#     @googlePlus.login().then((authResult) =>
-#       data = {
-#         access_token: authResult.access_token,
-#         provider: 'GooglePlus'
-#       }
-#       @authenticate(data).then((response) =>
-#         if response.authenticated
-#           @rootScope.isLoggedIn = true
-# 
-#           @UserViolationsPrefsFcty.getInitialUserViolationsPrefs().then((data) =>
-#             @localStorage.userprefs = _.groupBy(data, 'category')
-#           )
-# 
-#           if response.first_login
-#             @location.url "/user/violations/prefs/"
-#           else
-#             @location.url "/"
-#         else
-#           @logout()
-#       , ->
-#         @logout()
-#       )
-#     , (err) ->
-#       @logout()
-#     )
-
 class AuthService
 
-  constructor: (@http, @rootScope) ->
+  constructor: (@http, @rootScope, @location, @GooglePlus) ->
     @bzzApiUrl = 'http://local.bzz.com:9000'
     @bindEvents()
 
@@ -90,7 +15,7 @@ class AuthService
     )
 
   setSignIn: (provider, accessToken) ->
-    path = '/auth/signout/'
+    path = '/auth/signin/'
     @http.post(@bzzApiUrl + path,
       provider: provider
       access_token: accessToken
@@ -110,11 +35,12 @@ class AuthService
         if response.loggedOut
           @isLoggedIn = false
           @userData = null
-          callback()
+          @location.url '/login'
+          if callback then callback()
       ).error((response) =>
         console.log 'Failed to Logout: ', response
       )
-    else
+    else if callback
       callback()
 
   checkAuthentication: (callback) ->
@@ -122,14 +48,38 @@ class AuthService
       if response.authenticated
         @isLoggedIn = response.authenticated
         @userData = response.userData
-        callback()
+        if callback then callback()
       else
         @logout(callback)
     ).error((response) =>
       console.log 'Failed to check Authentication:', response
     )
 
+  googleLogin: (callback) ->
+    @googlePlus.login().then((authResult) =>
+      @setSignIn('GooglePlus', authResult.access_token).then((response) =>
+        if response.data.authenticated
+          @isLoggedIn = true
+          @location.url "/"
+          if callback then callback()
+        else
+          @logout(callback)
+      , =>
+        @logout(callback)
+      )
+    , (err) =>
+      @logout(callback)
+    )
+
+  #logoutIfNotAuthenticated: (callback) ->
+    #if !@isLoggedIn then @logout(callback)
+
+  #redirectIfAuthenticated: (callback) ->
+    #if @isLoggedIn
+      #@location.url '/'
+      #callback()
+
 angular.module('bzzAngularApp')
-  .service('AuthService', ($http, $rootScope) ->
-    new AuthService($http, $rootScope)
+  .service('AuthService', ($http, $rootScope, $location, GooglePlus) ->
+    new AuthService($http, $rootScope, $location, GooglePlus)
   )

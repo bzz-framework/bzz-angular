@@ -22,6 +22,7 @@ module.exports = (config) ->
       'bower_components/angular-sanitize/angular-sanitize.js'
       'bower_components/angular-touch/angular-touch.js'
       'bower_components/jasmine.async/lib/jasmine.async.min.js'
+      'bower_components/angular-google-plus/dist/angular-google-plus.js'
       'app/scripts/**/*.coffee'
       'test/mock/**/*.coffee'
       'test/spec/**/*.coffee'
