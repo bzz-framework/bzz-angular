@@ -27,7 +27,7 @@ describe 'Service: AuthService', ->
   it 'should have default values for flag vars', ->
     expect(authService.bzzApiUrl).toEqual bzzApiUrl
 
-  async.it 'should check authentication when authenticated', (done) ->
+  async.it 'should check authentication when authenticated and get user data', (done) ->
     httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
       authenticated: true
       userData:
@@ -36,7 +36,7 @@ describe 'Service: AuthService', ->
         name: 'test 123'
         provider: 'provider'
     authService.checkAuthentication(->
-      expect(authService.isLoggedIn).toEqual true
+      expect(authService.isAuthenticated).toEqual true
       expect(authService.userData).toEqual
         id: 123
         email: 'test@test.com'
@@ -46,9 +46,9 @@ describe 'Service: AuthService', ->
     )
     httpBackend.flush()
 
-  async.it 'should check authentication when not authenticated then logout', (done) ->
-    # make sure that isLoggedIn and userData attributes is undefined
-    delete authService.isLoggedIn
+  async.it 'should check authentication when not authenticated then signOut', (done) ->
+    # make sure that isAuthenticated and userData attributes is undefined
+    delete authService.isAuthenticated
     delete authService.userData
     # mock POST /auth/signout
     httpBackend.whenPOST(bzzApiUrl + '/auth/signout/').respond
@@ -57,15 +57,15 @@ describe 'Service: AuthService', ->
     httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
       authenticated: false
     authService.checkAuthentication(->
-      expect(authService.isLoggedIn).toEqual false
+      expect(authService.isAuthenticated).toEqual false
       expect(authService.userData).toEqual null
       done()
     )
     httpBackend.flush()
 
   async.it 'should bind event of unauthorizedRequest', (done) ->
-    # make sure that isLoggedIn and userData attributes is undefined
-    delete authService.isLoggedIn
+    # make sure that isAuthenticated and userData attributes is undefined
+    delete authService.isAuthenticated
     delete authService.userData
     # mock GET /auth/me
     httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
@@ -74,15 +74,15 @@ describe 'Service: AuthService', ->
     httpBackend.whenPOST(bzzApiUrl + '/auth/signout/').respond
       loggedOut: true
     authService.rootScope.$broadcast('unauthorizedRequest', ->
-      expect(authService.isLoggedIn).toEqual false
+      expect(authService.isAuthenticated).toEqual false
       expect(authService.userData).toEqual null
       done()
     )
     httpBackend.flush()
 
   async.it 'should bind event of locationChangeStart', (done) ->
-    # make sure that isLoggedIn and userData attributes is undefined
-    delete authService.isLoggedIn
+    # make sure that isAuthenticated and userData attributes is undefined
+    delete authService.isAuthenticated
     delete authService.userData
     # mock GET /auth/me
     httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
@@ -93,7 +93,7 @@ describe 'Service: AuthService', ->
         name: 'test 123'
         provider: 'provider'
     authService.rootScope.$broadcast('$locationChangeStart', null, null, ->
-      expect(authService.isLoggedIn).toEqual true
+      expect(authService.isAuthenticated).toEqual true
       expect(authService.userData).toEqual
         id: 123
         email: 'test@test.com'
@@ -119,7 +119,7 @@ describe 'Service: AuthService', ->
 
     authService.googlePlus = googlePlus
     authService.googleLogin(->
-      expect(authService.isLoggedIn).toBe true
+      expect(authService.isAuthenticated).toBe true
       expect(location.path()).toBe '/'
       done()
     )
@@ -143,7 +143,7 @@ describe 'Service: AuthService', ->
 
     authService.googlePlus = googlePlus
     authService.googleLogin(->
-      expect(authService.isLoggedIn).toBe false
+      expect(authService.isAuthenticated).toBe false
       expect(location.path()).toBe '/login'
       done()
     )

@@ -1,5 +1,6 @@
 'use strict'
 
+
 class AuthService
 
   constructor: (@http, @rootScope, @location, @GooglePlus) ->
@@ -8,7 +9,7 @@ class AuthService
 
   bindEvents: ->
     @rootScope.$on('unauthorizedRequest', (event, callback) =>
-      @logout(callback)
+      @signOut(callback)
     )
     @rootScope.$on('$locationChangeStart', (event, next, prev, callback) =>
       @checkAuthentication(callback)
@@ -29,16 +30,16 @@ class AuthService
     path = '/auth/me/'
     @http.get(@bzzApiUrl + path)
 
-  logout: (callback) ->
-    if !@isLoggedIn
+  signOut: (callback) ->
+    if !@isAuthenticated
       @setSignOut().success((response) =>
         if response.loggedOut
-          @isLoggedIn = false
+          @isAuthenticated = false
           @userData = null
           @location.url '/login'
           if callback then callback()
       ).error((response) =>
-        console.log 'Failed to Logout: ', response
+        console.log 'Failed to signOut: ', response
       )
     else if callback
       callback()
@@ -46,11 +47,11 @@ class AuthService
   checkAuthentication: (callback) ->
     @getAuthMe().success((response) =>
       if response.authenticated
-        @isLoggedIn = response.authenticated
+        @isAuthenticated = response.authenticated
         @userData = response.userData
         if callback then callback()
       else
-        @logout(callback)
+        @signOut(callback)
     ).error((response) =>
       console.log 'Failed to check Authentication:', response
     )
@@ -59,25 +60,17 @@ class AuthService
     @googlePlus.login().then((authResult) =>
       @setSignIn('GooglePlus', authResult.access_token).then((response) =>
         if response.data.authenticated
-          @isLoggedIn = true
+          @isAuthenticated = true
           @location.url "/"
           if callback then callback()
         else
-          @logout(callback)
+          @signOut(callback)
       , =>
-        @logout(callback)
+        @signOut(callback)
       )
     , (err) =>
-      @logout(callback)
+      @signOut(callback)
     )
-
-  #logoutIfNotAuthenticated: (callback) ->
-    #if !@isLoggedIn then @logout(callback)
-
-  #redirectIfAuthenticated: (callback) ->
-    #if @isLoggedIn
-      #@location.url '/'
-      #callback()
 
 angular.module('bzzAngularApp')
   .service('AuthService', ($http, $rootScope, $location, GooglePlus) ->
