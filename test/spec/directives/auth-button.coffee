@@ -13,4 +13,4 @@ describe 'Directive: authButton', ->
   it 'should make hidden element visible', inject ($compile) ->
     element = angular.element '<auth-button></auth-button>'
     element = $compile(element) scope
-    expect(element.text()).toBe ''
+    expect(element.text()).toBe 'Entrar com {{ model.provider }}'

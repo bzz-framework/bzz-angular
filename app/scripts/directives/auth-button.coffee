@@ -12,10 +12,13 @@ class AuthButtonCtrl
 
 angular.module('bzz.auth')
   .directive('authButton', (AuthService) ->
-    templateUrl: 'views/directives/auth-button.html'
+    template: '''
+      <a href="javascript:;" class="{{ model.provider }}-login login-button" ng-click="model.login()">
+      <span class="icon"></span><span class="text">Entrar com {{ model.provider }}</span></a>
+    '''
     restrict: 'E'
+    transclude: true
     link: (scope, element, attributes) ->
-      console.log 'Instantiate bzzAuthButton'
       scope.model = new AuthButtonCtrl(
         scope, attributes['provider'], AuthService
       )
