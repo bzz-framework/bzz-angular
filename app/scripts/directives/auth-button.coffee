@@ -10,7 +10,7 @@ class AuthButtonCtrl
     else
       console.log 'Invalid provider'
 
-angular.module('bzzAngularApp')
+angular.module('bzz.auth')
   .directive('authButton', (AuthService) ->
     templateUrl: 'views/directives/auth-button.html'
     restrict: 'E'
