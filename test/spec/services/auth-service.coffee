@@ -1,5 +1,39 @@
 'use strict'
 
+describe 'Service: AuthServiceProvider', ->
+
+  authServiceProvider = {}
+
+  beforeEach ->
+    module 'bzzAngularApp'
+
+  # load the service's module
+  beforeEach ->
+    fakeAuth = angular.module('fake.auth', ['bzz.auth'])
+    fakeAuth.config (AuthServiceProvider) ->
+      authServiceProvider = AuthServiceProvider
+    module 'bzzAngularApp', 'fake.auth'
+
+    inject(->)
+
+  it 'should not be null', ->
+    expect(authServiceProvider).not.toBeUndefined()
+
+  it 'should configure all options', ->
+    authServiceProvider.init
+      googleClientId: 'client-id'
+      googleApiKey: 'api-key'
+      googleScopes: 'scopes'
+      bzzApiUrl: 'bzz-url'
+      redirectWhenLogin: '/home'
+      loginPage: '/login-page'
+    expect(authServiceProvider.options['googleClientId']).toEqual 'client-id'
+    expect(authServiceProvider.options['googleApiKey']).toEqual 'api-key'
+    expect(authServiceProvider.options['googleScopes']).toEqual 'scopes'
+    expect(authServiceProvider.options['bzzApiUrl']).toEqual 'bzz-url'
+    expect(authServiceProvider.options['redirectWhenLogin']).toEqual '/home'
+    expect(authServiceProvider.options['loginPage']).toEqual '/login-page'
+
 describe 'Service: AuthService', ->
 
   async = new AsyncSpec @
@@ -13,19 +47,18 @@ describe 'Service: AuthService', ->
   authService = {}
   httpBackend = {}
   location = {}
+  bzzApiUrl = 'http://test.com:2368/api'
   async.beforeEach (done) ->
     inject (_AuthService_, $httpBackend, $location) ->
       authService = _AuthService_
+      authService.options =
+        bzzApiUrl: bzzApiUrl
+        redirectWhenLogin: '/'
+        loginPage: '/login'
       httpBackend = $httpBackend
       location = $location
       done()
       return
-
-  # TODO: make bzz url configurable
-  bzzApiUrl = 'http://local.bzz.com:9000'
-
-  it 'should have default values for flag vars', ->
-    expect(authService.bzzApiUrl).toEqual bzzApiUrl
 
   async.it 'should check authentication when authenticated and get user data', (done) ->
     httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
@@ -117,7 +150,7 @@ describe 'Service: AuthService', ->
             access_token: '1234567890'
           )
 
-    authService.googlePlus = googlePlus
+    authService.GooglePlus = googlePlus
     authService.googleLogin(->
       expect(authService.isAuthenticated).toBe true
       expect(location.path()).toBe '/'
@@ -141,7 +174,7 @@ describe 'Service: AuthService', ->
             access_token: '1234567890'
           )
 
-    authService.googlePlus = googlePlus
+    authService.GooglePlus = googlePlus
     authService.googleLogin(->
       expect(authService.isAuthenticated).toBe false
       expect(location.path()).toBe '/login'

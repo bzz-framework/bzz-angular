@@ -1,10 +1,16 @@
 'use strict'
 
+options =
+  googleClientId: null
+  googleApiKey: null
+  googleScopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+  bzzApiUrl: 'http://localhost:2368/'
+  redirectWhenLogin: '/'
+  loginPage: '/login'
 
 class AuthService
 
-  constructor: (@http, @rootScope, @location, @GooglePlus) ->
-    @bzzApiUrl = 'http://local.bzz.com:9000'
+  constructor: (@options, @http, @rootScope, @location, @GooglePlus) ->
     @bindEvents()
 
   bindEvents: ->
@@ -15,20 +21,29 @@ class AuthService
       @checkAuthentication(callback)
     )
 
+  responseInterceptor: ($q) ->
+    onError = (response) ->
+      if response.status is 401
+        @rootScope.$broadcast('unauthorizedRequest')
+      $q.reject response
+
+    return (promise) ->
+      promise.then(((response) -> response), onError)
+
   setSignIn: (provider, accessToken) ->
     path = '/auth/signin/'
-    @http.post(@bzzApiUrl + path,
+    @http.post(@options['bzzApiUrl'] + path,
       provider: provider
       access_token: accessToken
     )
 
   setSignOut: ->
     path = '/auth/signout/'
-    @http.post(@bzzApiUrl + path, '')
+    @http.post(@options['bzzApiUrl'] + path, '')
 
   getAuthMe: ->
     path = '/auth/me/'
-    @http.get(@bzzApiUrl + path)
+    @http.get(@options['bzzApiUrl'] + path)
 
   signOut: (callback) ->
     if !@isAuthenticated
@@ -36,7 +51,7 @@ class AuthService
         if response.loggedOut
           @isAuthenticated = false
           @userData = null
-          @location.url '/login'
+          @location.url @options['loginPage']
           if callback then callback()
       ).error((response) =>
         console.log 'Failed to signOut: ', response
@@ -56,12 +71,12 @@ class AuthService
       console.log 'Failed to check Authentication:', response
     )
 
-  googleLogin: (callback) ->
-    @googlePlus.login().then((authResult) =>
+  googleLogin: (callback) =>
+    @GooglePlus.login().then((authResult) =>
       @setSignIn('GooglePlus', authResult.access_token).then((response) =>
         if response.data.authenticated
           @isAuthenticated = true
-          @location.url "/"
+          @location.url @options['redirectWhenLogin']
           if callback then callback()
         else
           @signOut(callback)
@@ -72,7 +87,20 @@ class AuthService
       @signOut(callback)
     )
 
-angular.module('bzzAngularApp')
-  .service('AuthService', ($http, $rootScope, $location, GooglePlus) ->
-    new AuthService($http, $rootScope, $location, GooglePlus)
+angular.module('bzz.auth', ['googleplus'])
+  .provider('AuthService', (GooglePlusProvider) ->
+    @init = (customOptions) ->
+      @options = angular.extend(options, customOptions)
+      @initializeGooglePlus(@options)  # if google enabled
+
+    @initializeGooglePlus = (options) ->
+      GooglePlusProvider.init
+        clientId: options['googleClientId']
+        apiKey: options['googleApiKey']
+        scopes: options['googleScopes']
+
+    @$get = ($http, $rootScope, $location, GooglePlus) ->
+      new AuthService(@options, $http, $rootScope, $location, GooglePlus)
+
+    return
   )

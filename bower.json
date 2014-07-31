@@ -12,7 +12,8 @@
     "angular-touch": "1.2.16",
     "angular-route": "1.2.16",
     "jasmine.async": "~0.1.0",
-    "angular-google-plus": "~0.1.2"
+    "angular-google-plus": "~0.1.2",
+    "css3-social-signin-buttons": "holmes-app/css3-social-signin-buttons"
   },
   "devDependencies": {
     "angular-mocks": "1.2.16",

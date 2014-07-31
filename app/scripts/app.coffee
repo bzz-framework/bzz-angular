@@ -16,9 +16,9 @@ angular
     'ngRoute',
     'ngSanitize',
     'ngTouch',
-    'googleplus'
+    'bzz.auth'
   ])
-  .config ($routeProvider, GooglePlusProvider) ->
+  .config ($routeProvider, AuthServiceProvider) ->
     $routeProvider
       .when '/',
         templateUrl: 'views/main.html'
@@ -29,7 +29,13 @@ angular
       .otherwise
         redirectTo: '/'
 
-    GooglePlusProvider.init
-      clientId: 'YOUR_CLIENT_ID',
-      apiKey: 'YOUR_API_KEY'
+    AuthServiceProvider.init
+      googleClientId: '840338438074-v3qa8cqcibi9novkq2qgv0uvb768g6c5.apps.googleusercontent.com'
+      googleApiKey: 'AIzaSyAuTg2K66eFEvxWFpOhOMU_UeE7dq71pMs'
+      googleScopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+      bzzApiUrl: 'http://local.globoi.com:2368/api'
+      redirectWhenLogin: '/'
+      loginPage: '/login'
 
+  .factory "httpResponseInterceptor", ($q, AuthService) ->
+    AuthService.responseInterceptor($q)
