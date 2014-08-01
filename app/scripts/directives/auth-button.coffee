@@ -13,7 +13,7 @@ class AuthButtonCtrl
 angular.module('bzz.auth')
   .directive('authButton', (AuthService) ->
     template: '''
-      <a href="javascript:;" class="{{ model.provider }}-login login-button" ng-click="model.login()">
+      <a href="javascript:;" class="{{ model.provider }}-login auth-button" ng-click="model.login()">
       <span class="icon"></span><span class="text">Entrar com {{ model.provider }}</span></a>
     '''
     restrict: 'E'
