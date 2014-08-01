@@ -21,15 +21,6 @@ class AuthService
       @checkAuthentication(callback)
     )
 
-  responseInterceptor: ($q) ->
-    onError = (response) ->
-      if response.status is 401
-        @rootScope.$broadcast('unauthorizedRequest')
-      $q.reject response
-
-    return (promise) ->
-      promise.then(((response) -> response), onError)
-
   setSignIn: (provider, accessToken) ->
     path = '/auth/signin/'
     @http.post(@options['bzzApiUrl'] + path,
