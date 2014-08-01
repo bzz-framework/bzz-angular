@@ -73,7 +73,7 @@ class AuthService
 
   googleLogin: (callback) =>
     @GooglePlus.login().then((authResult) =>
-      @setSignIn('GooglePlus', authResult.access_token).then((response) =>
+      @setSignIn('google', authResult.access_token).then((response) =>
         if response.data.authenticated
           @isAuthenticated = true
           @location.url @options['redirectWhenLogin']
