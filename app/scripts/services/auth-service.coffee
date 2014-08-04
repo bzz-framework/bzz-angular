@@ -37,18 +37,15 @@ class AuthService
     @http.get(@options['bzzApiUrl'] + path)
 
   signOut: (callback) ->
-    if !@isAuthenticated
-      @setSignOut().success((response) =>
-        if response.loggedOut
-          @isAuthenticated = false
-          @userData = null
-          @location.url @options['loginPage']
-          if callback then callback()
-      ).error((response) =>
-        console.log 'Failed to signOut: ', response
-      )
-    else if callback
-      callback()
+    @setSignOut().success((response) =>
+      if response.loggedOut
+        @isAuthenticated = false
+        @userData = null
+        @location.url @options['loginPage']
+        if callback then callback()
+    ).error((response) =>
+      console.log 'Failed to signOut: ', response
+    )
 
   checkAuthentication: (callback) ->
     @getAuthMe().success((response) =>
