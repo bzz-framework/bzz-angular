@@ -7,12 +7,15 @@ Resources
 =========
 
  * AuthService provider: allows easy integration with bzz authentication api
- * AuthButton directive: allows easy login button implementation with nice default CSS
+ * AuthButton directive: allows easy login button implementation with default UI
 
 Supported providers
 -------------------
 
  * GooglePlus
+ * Facebook (still not implemented)
+ * Github (still not implemented)
+ * OAuth 2 (still not implemented)
 
 Installing with bower
 =====================
@@ -22,7 +25,7 @@ Installing with bower
 Configuring the service
 =======================
 
-Add `'bzz.auth'` on your module application`s dependencies array, I.E:
+First, add `'bzz.auth'` on your module application's dependencies array:
 
 ```javascript
 var myModule = angular.module('myWebApp', [
@@ -31,16 +34,15 @@ var myModule = angular.module('myWebApp', [
 ])
 ```
 
-Then add `AuthServiceProvider` and angular `$httpProvider` as a dependency injection on the config function:
+Then add `AuthServiceProvider` and angular `$httpProvider` as dependencies on the config step of your app:
 
 ```javascript
 myModule.config(function($routeProvider, /* ... */, $httpProvider, AuthServiceProvider) {
-  // $routeProvider ...
-  // code explained below here...
+  // AuthServiceProvider configuration explained below...
 })
 ```
 
-In the the config function, configure the initialization vars for the service (the values belowe is the defaults ones, excepting googleClientId and googleApiKey that the defaults is `null`):
+In the the config step, you need to configure the initialization vars for the service (the values below are the default ones). bzz-angular comes with sensible defaults, but you must configure the Client ID and Secret for the providers you want to use (in this example, Google). You must also configure the URL where bzz can be found:
 
 ```javascript
   AuthServiceProvider.init({
@@ -56,10 +58,11 @@ In the the config function, configure the initialization vars for the service (t
 And add `httpResponseInterceptor` to the `$httpProvider.responseInterceptors` array:
 
 ```javascript
+  // This allows bzz-angular to make sure the user is authenticated in routes that require authentication.
   $httpProvider.responseInterceptors.push('httpResponseInterceptor')
 ```
 
-Now, for run the Service at the initialization of your angular application, inject the AuthService on the `run` method of your module (nothing need to be done after it):
+Using the authentication service is as easy as using angular's dependency injection with:
 
 ```javascript
 myModule.run(function (AuthService) {});
@@ -89,7 +92,7 @@ angular.module('myWebApp', [
 AuthButton Directive
 ====================
 
-To simple & fast login method, use the AuthButton directive. It has a really nice default CSS and is easy-as-click to make you authenticated. Just use in your templates:
+bzz-angular comes with an `auth-button` directive. The goal is to make it simple to include authentication in your application. Just use in your templates:
 
 ```html
   <auth-button provider="google"></auth-button>
