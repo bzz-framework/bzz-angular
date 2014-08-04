@@ -7,7 +7,7 @@ Resources
 =========
 
  * AuthService provider: allows easy integration with bzz authentication api
- * AuthButton directive: allows easy login button implementation
+ * AuthButton directive: allows easy login button implementation with nice default CSS
 
 Supported providers
 -------------------
@@ -17,7 +17,7 @@ Supported providers
 Installing with bower
 =====================
 
-    bower install bzz-angular --save
+    bower install --save bzz-angular
 
 Configuring the service
 =======================
@@ -36,11 +36,11 @@ Then add `AuthServiceProvider` and angular `$httpProvider` as a dependency injec
 ```javascript
 myModule.config(function($routeProvider, /* ... */, $httpProvider, AuthServiceProvider) {
   // $routeProvider ...
-  
+  // code explained below here...
 })
 ```
 
-Inner the config function, configure the initialization vars for the service (Excepting googleClientId and googleApiKey, the values ahead is the defaults ones):
+In the the config function, configure the initialization vars for the service (the values belowe is the defaults ones, excepting googleClientId and googleApiKey that the defaults is `null`):
 
 ```javascript
   AuthServiceProvider.init({
@@ -73,7 +73,6 @@ angular.module('myWebApp', [
   'bzz.auth'
 ]).config(function($routeProvider, /* ... */, $httpProvider, AuthServiceProvider) {
   // $routeProvider ...
-  
   // configuring
   AuthServiceProvider.init({
     googleClientId: 'MYGOOGLECLIENTID'
@@ -83,10 +82,7 @@ angular.module('myWebApp', [
     redirectWhenLogin: '/'
     loginPage: '/login'
   });
-  
   $httpProvider.responseInterceptors.push('httpResponseInterceptor');
-  
-  
 }).run(function (AuthService) {});
 ```
 
