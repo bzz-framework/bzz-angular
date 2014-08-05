@@ -3,7 +3,9 @@
 describe 'Directive: authButton', ->
 
   # load the directive's module
-  beforeEach module 'bzzAngularApp'
+  #beforeEach module 'bzzAngularApp'
+
+  beforeEach module 'bzz.auth'
 
   scope = {}
 
@@ -11,6 +13,7 @@ describe 'Directive: authButton', ->
     scope = $rootScope.$new()
 
   it 'should make hidden element visible', inject ($compile) ->
-    element = angular.element '<auth-button></auth-button>'
+    element = angular.element '<auth-button provider="google"></auth-button>'
     element = $compile(element) scope
-    expect(element.text()).toBe 'Entrar com {{ model.provider }}'
+    scope.$digest()
+    expect(element.text()).toBe '\nEntrar com google'

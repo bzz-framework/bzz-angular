@@ -4,16 +4,12 @@ describe 'Service: AuthServiceProvider', ->
 
   authServiceProvider = {}
 
-  beforeEach ->
-    module 'bzzAngularApp'
-
   # load the service's module
   beforeEach ->
-    fakeAuth = angular.module('fake.auth', ['bzz.auth'])
-    fakeAuth.config (AuthServiceProvider) ->
+    angular.module('testApp', ->).config (AuthServiceProvider) ->
       authServiceProvider = AuthServiceProvider
-    module 'bzzAngularApp', 'fake.auth'
 
+    module('bzz.auth', 'testApp')
     inject(->)
 
   it 'should not be null', ->
@@ -40,7 +36,7 @@ describe 'Service: AuthService', ->
 
   # load the service's module
   async.beforeEach (done) ->
-    module 'bzzAngularApp'
+    module 'bzz.auth'
     done()
 
   # instantiate service
@@ -49,8 +45,8 @@ describe 'Service: AuthService', ->
   location = {}
   bzzApiUrl = 'http://test.com:2368/api'
   async.beforeEach (done) ->
-    inject (_AuthService_, $httpBackend, $location) ->
-      authService = _AuthService_
+    inject (AuthService, $httpBackend, $location) ->
+      authService = AuthService
       authService.options =
         bzzApiUrl: bzzApiUrl
         redirectWhenLogin: '/'
@@ -139,7 +135,7 @@ describe 'Service: AuthService', ->
   async.it 'should authenticate on googleplus', (done) ->
     # mock GET /auth/me
     httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
-      authenticated: false
+      authenticated: true
     # mock POST /auth/signin
     httpBackend.whenPOST(bzzApiUrl + '/auth/signin/').respond
       authenticated: true
@@ -149,11 +145,11 @@ describe 'Service: AuthService', ->
           callback(
             access_token: '1234567890'
           )
-
     authService.GooglePlus = googlePlus
+
     authService.googleLogin(->
       expect(authService.isAuthenticated).toBe true
-      expect(location.path()).toBe '/'
+      expect(location.url()).toBe '/home'
       done()
     )
     httpBackend.flush()
@@ -181,3 +177,17 @@ describe 'Service: AuthService', ->
       done()
     )
     httpBackend.flush()
+
+  async.it 'should return to previous entered page after login', (done) ->
+    authService.rootScope.$broadcast('$locationChangeStart', 'http://server/login', 'http://server/other-page', ->
+      done()
+    )
+    expect(authService.redirectUrl).toBe('/other-page')
+    done()
+
+  async.it 'should not return to previous entered page after login with the previous is login', (done) ->
+    authService.rootScope.$broadcast('$locationChangeStart', 'http://server/login', 'http://server/login', ->
+      done()
+    )
+    expect(authService.redirectUrl).toBe('/home')
+    done()

@@ -11,37 +11,55 @@ options =
 class AuthService
 
   constructor: (@options, @http, @rootScope, @location, @GooglePlus) ->
+    @baseLen = @_getBaseLen()
+    @redirectUrl = @_getOption('redirectWhenLogin')
     @bindEvents()
+
+  _getBaseLen: ->
+    baseLen = @location.absUrl().length - @location.url().length
+    if @location.url() == '' then baseLen - 1 else baseLen
+
+  _getOption: (key) ->
+    if @options? then @options[key] else options[key]
+
+  _getRelativeUrl: (fullUrl) ->
+    if fullUrl? then fullUrl.substring(@baseLen) else fullUrl
+
+  _redirect: (path) ->
+    @location.url path
 
   bindEvents: ->
     @rootScope.$on('unauthorizedRequest', (event, callback) =>
       @signOut(callback)
     )
     @rootScope.$on('$locationChangeStart', (event, next, prev, callback) =>
+      login_path = @_getOption('loginPage')
+      if @_getRelativeUrl(next) == login_path and @_getRelativeUrl(prev) != login_path
+        @redirectUrl = @_getRelativeUrl(prev)
       @checkAuthentication(callback)
     )
 
   setSignIn: (provider, accessToken) ->
     path = '/auth/signin/'
-    @http.post(@options['bzzApiUrl'] + path,
+    @http.post(@_getOption('bzzApiUrl') + path,
       provider: provider
       access_token: accessToken
     )
 
   setSignOut: ->
     path = '/auth/signout/'
-    @http.post(@options['bzzApiUrl'] + path, '')
+    @http.post(@_getOption('bzzApiUrl') + path, '')
 
   getAuthMe: ->
     path = '/auth/me/'
-    @http.get(@options['bzzApiUrl'] + path)
+    @http.get(@_getOption('bzzApiUrl') + path)
 
   signOut: (callback) ->
     @setSignOut().success((response) =>
       if response.loggedOut
         @isAuthenticated = false
         @userData = null
-        @location.url @options['loginPage']
+        @_redirect @_getOption('loginPage')
         if callback then callback()
     ).error((response) =>
       console.log 'Failed to signOut: ', response
@@ -64,7 +82,7 @@ class AuthService
       @setSignIn('google', authResult.access_token).then((response) =>
         if response.data.authenticated
           @isAuthenticated = true
-          @location.url @options['redirectWhenLogin']
+          @_redirect @redirectUrl
           if callback then callback()
         else
           @signOut(callback)
@@ -75,7 +93,7 @@ class AuthService
       @signOut(callback)
     )
 
-angular.module('bzz.auth', ['googleplus'])
+angular.module('bzz.auth', ['ngRoute', 'googleplus'])
   .provider('AuthService', (GooglePlusProvider) ->
     @init = (customOptions) ->
       @options = angular.extend(options, customOptions)
