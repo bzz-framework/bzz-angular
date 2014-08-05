@@ -401,7 +401,7 @@ module.exports = function (grunt) {
     karma: {
       unit: {
         configFile: 'test/karma.conf.coffee',
-        singleRun: true
+        singleRun: false
       }
     }
   });
