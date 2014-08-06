@@ -25,9 +25,6 @@ class AuthService
   _getRelativeUrl: (fullUrl) ->
     if fullUrl? then fullUrl.substring(@baseLen) else fullUrl
 
-  _redirect: (path) ->
-    @location.url path
-
   bindEvents: ->
     @rootScope.$on('unauthorizedRequest', (event, callback) =>
       @signOut(callback)
@@ -59,7 +56,7 @@ class AuthService
       if response.loggedOut
         @isAuthenticated = false
         @userData = null
-        @_redirect @_getOption('loginPage')
+        @location.url @_getOption('loginPage')
         if callback then callback()
     ).error((response) =>
       console.log 'Failed to signOut: ', response
@@ -70,6 +67,8 @@ class AuthService
       if response.authenticated
         @isAuthenticated = response.authenticated
         @userData = response.userData
+        if @location.url() == @_getOption('loginPage')
+          @location.url @redirectUrl
         if callback then callback()
       else
         @signOut(callback)
@@ -82,7 +81,7 @@ class AuthService
       @setSignIn('google', authResult.access_token).then((response) =>
         if response.data.authenticated
           @isAuthenticated = true
-          @_redirect @redirectUrl
+          @location.url @redirectUrl
           if callback then callback()
         else
           @signOut(callback)

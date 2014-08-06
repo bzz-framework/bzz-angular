@@ -191,3 +191,14 @@ describe 'Service: AuthService', ->
     )
     expect(authService.redirectUrl).toBe('/home')
     done()
+
+  async.it 'should redirect to previous entered page if authenticated in login page', (done) ->
+    # mock GET /auth/me
+    httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
+      authenticated: true
+    location.url('/login')
+    authService.rootScope.$broadcast('$locationChangeStart', 'http://server/login', 'http://server/other-page', ->
+      expect(location.url()).toBe('/other-page')
+      done()
+    )
+    httpBackend.flush()
