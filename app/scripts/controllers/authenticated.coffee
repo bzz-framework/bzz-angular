@@ -8,7 +8,7 @@
  # Controller of the bzzAngularApp
 ###
 angular.module('bzzAngularApp')
-  .controller 'AboutCtrl', ($scope) ->
+  .controller 'AuthenticatedCtrl', ($scope) ->
     $scope.awesomeThings = [
       'HTML5 Boilerplate'
       'AngularJS'

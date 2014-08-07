@@ -10,7 +10,7 @@ options =
 
 class AuthService
 
-  constructor: (@options, @http, @rootScope, @location, @GooglePlus) ->
+  constructor: (@options, @http, @rootScope, @location, @route, @GooglePlus) ->
     @baseLen = @_getBaseLen()
     @redirectUrl = @_getOption('redirectWhenLogin')
     @bindEvents()
@@ -26,15 +26,20 @@ class AuthService
     if fullUrl? then fullUrl.substring(@baseLen) else fullUrl
 
   bindEvents: ->
-    @rootScope.$on('unauthorizedRequest', (event, callback) =>
+    @rootScope.$on 'unauthorizedRequest', (event, callback) =>
       @signOut(callback)
-    )
-    @rootScope.$on('$locationChangeStart', (event, next, prev, callback) =>
+
+    @rootScope.$on '$locationChangeStart', (event, next, prev, callback) =>
       login_path = @_getOption('loginPage')
       if @_getRelativeUrl(next) == login_path and @_getRelativeUrl(prev) != login_path
         @redirectUrl = @_getRelativeUrl(prev)
-      @checkAuthentication(callback)
-    )
+      @rootScope.$broadcast('$locationChangeSuccess', next, prev, callback)
+
+    @rootScope.$on '$locationChangeSuccess', (event, current, previous, callback) =>
+      if @route.current.requiresAuthentication
+        @checkAuthentication(callback if typeof(callback) == 'function')
+      else
+        callback() if typeof(callback) == 'function'
 
   setSignIn: (provider, accessToken) ->
     path = '/auth/signin/'
@@ -104,8 +109,8 @@ angular.module('bzz.auth', ['ngRoute', 'googleplus'])
         apiKey: options['googleApiKey']
         scopes: options['googleScopes']
 
-    @$get = ($http, $rootScope, $location, GooglePlus) ->
-      new AuthService(@options, $http, $rootScope, $location, GooglePlus)
+    @$get = ($http, $rootScope, $location, $route, GooglePlus) ->
+      new AuthService(@options, $http, $rootScope, $location, $route, GooglePlus)
 
     return
   )

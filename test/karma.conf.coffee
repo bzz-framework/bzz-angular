@@ -23,6 +23,7 @@ module.exports = (config) ->
       'bower_components/angular-touch/angular-touch.js'
       'bower_components/jasmine.async/lib/jasmine.async.min.js'
       'bower_components/angular-google-plus/dist/angular-google-plus.js'
+      'app/scripts/app.coffee'
       'app/scripts/services/auth-service.coffee'
       'app/scripts/services/httpinterceptor.coffee'
       'app/scripts/directives/auth-button.coffee'

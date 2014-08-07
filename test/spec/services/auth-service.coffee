@@ -6,8 +6,16 @@ describe 'Service: AuthServiceProvider', ->
 
   # load the service's module
   beforeEach ->
-    angular.module('testApp', ->).config (AuthServiceProvider) ->
+    angular.module('testApp', ->).config ($routeProvider, AuthServiceProvider) ->
       authServiceProvider = AuthServiceProvider
+      $routeProvider
+        .when '/authenticated-view',
+          template: '<html>Autheticated</html>'
+          controller: ->
+          authenticated: true
+        .when '/public-view',
+          template: '<html>Public</html>'
+          controller: ->
 
     module('bzz.auth', 'testApp')
     inject(->)
@@ -36,7 +44,7 @@ describe 'Service: AuthService', ->
 
   # load the service's module
   async.beforeEach (done) ->
-    module 'bzz.auth'
+    module('bzz.auth')
     done()
 
   # instantiate service
@@ -51,6 +59,9 @@ describe 'Service: AuthService', ->
         bzzApiUrl: bzzApiUrl
         redirectWhenLogin: '/'
         loginPage: '/login'
+      authService.route =
+        current:
+          requiresAuthentication: true
       httpBackend = $httpBackend
       location = $location
       done()
@@ -202,3 +213,81 @@ describe 'Service: AuthService', ->
       done()
     )
     httpBackend.flush()
+
+describe 'Service: AuthService on Routes', ->
+
+  async = new AsyncSpec @
+
+  async.beforeEach (done) ->
+    angular
+      .module('testApp', ['bzz.auth'])
+      .config ($routeProvider) ->
+        $routeProvider
+          .when '/',
+            controller: ->
+          .when '/auth',
+            controller: ->
+            requiresAuthentication: true
+          .otherwise
+            redirectTo: '/'
+    done()
+
+  # load the service's module
+  async.beforeEach (done) ->
+    module('testApp')
+    done()
+
+  authService = {}
+  httpBackend = {}
+  location = {}
+  bzzApiUrl = 'http://test.com:2368/api'
+  async.beforeEach (done) ->
+    inject (AuthService, $httpBackend, $location) ->
+      authService = AuthService
+      authService.options =
+        bzzApiUrl: bzzApiUrl
+        redirectWhenLogin: '/'
+        loginPage: '/login'
+      httpBackend = $httpBackend
+      location = $location
+      done()
+      return
+
+  async.it 'should check authentication when view require authentication', (done) ->
+    location.url('/auth')
+    httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
+      authenticated: true
+    httpBackend.whenGET('views/authenticated.html').respond 200, '<html>Authenticated</html>'
+    authService.isAuthenticated = false
+    authService.rootScope.$broadcast('$locationChangeSuccess', 'http://server/auth', null, ->
+      expect(authService.isAuthenticated).toBe(true)
+      expect(location.url()).toBe('/auth')
+      done()
+    )
+    httpBackend.flush()
+
+  async.it 'should check authentication when view require authentication when not authenticated', (done) ->
+    # when authenticated false
+    location.url('/auth')
+    httpBackend.whenGET('views/main.html').respond 200, '<html>Home</html>'
+    httpBackend.whenPOST(bzzApiUrl + '/auth/signout/').respond
+      loggedOut: true
+    httpBackend.whenGET(bzzApiUrl + '/auth/me/').respond
+      authenticated: false
+    httpBackend.whenGET('views/authenticated.html').respond 200, '<html>Authenticated</html>'
+    authService.isAuthenticated = false
+    authService.rootScope.$broadcast('$locationChangeSuccess', 'http://server/auth', null, ->
+      expect(authService.isAuthenticated).toBe(false)
+      expect(location.url()).toBe('/login')
+      done()
+    )
+    httpBackend.flush()
+
+  async.it 'should not check authentication when view not require authentication', (done) ->
+    location.url('/')
+    authService.isAuthenticated = null
+    authService.rootScope.$broadcast('$locationChangeSuccess', 'http://server/', null, ->
+      expect(authService.isAuthenticated).toBe(null)
+      expect(location.url()).toBe('/')
+      done()
+    )

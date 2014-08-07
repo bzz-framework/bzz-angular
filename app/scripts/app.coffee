@@ -18,14 +18,16 @@ angular
     'ngTouch',
     'bzz.auth'
   ])
-  .config ($routeProvider, AuthServiceProvider) ->
+  .config ($routeProvider, $locationProvider, AuthServiceProvider) ->
+
     $routeProvider
       .when '/',
         templateUrl: 'views/main.html'
         controller: 'MainCtrl'
-      .when '/about',
-        templateUrl: 'views/about.html'
-        controller: 'AboutCtrl'
+      .when '/auth',
+        templateUrl: 'views/authenticated.html'
+        controller: 'AuthenticatedCtrl'
+        requiresAuthentication: true
       .otherwise
         redirectTo: '/'
 
