@@ -27,7 +27,6 @@ module.exports = (config) ->
       'app/scripts/services/auth-service.coffee'
       'app/scripts/services/httpinterceptor.coffee'
       'app/scripts/directives/auth-button.coffee'
-      'test/mock/**/*.coffee'
       'test/spec/**/*.coffee'
     ],
 
