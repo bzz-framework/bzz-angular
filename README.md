@@ -22,7 +22,7 @@ Installing with bower
 
     bower install --save bzz-angular
 
-Configuring the service
+Configuring AuthService
 =======================
 
 First, add `'bzz.auth'` on your module application's dependencies array:
@@ -42,7 +42,18 @@ myModule.config(function($routeProvider, /* ... */, $httpProvider, AuthServicePr
 })
 ```
 
-In the the config step, you need to configure the initialization vars for the service (the values below are the default ones). bzz-angular comes with sensible defaults, but you must configure the Client ID and Secret for the providers you want to use (in this example, Google). You must also configure the URL where bzz can be found:
+On the routes you need authentication check, you need to to configure these routes with `requiresAuthentication` flag:
+
+```
+  $routeProvider.when('/needs-authentication', {
+    controller: function() {},
+    requiresAuthentication: true
+  });
+```
+
+In the example above, the route `/needs-authentication` is configured with authentication check. This means that every time this route is changed to the current, a event to check authentication will be broadcasted to `AuthService`.
+
+Still in the the config step, you need to configure the initialization vars for the service (the values below are the default ones). bzz-angular comes with sensible defaults, but you must configure the Client ID and Secret for the providers you want to use (in this example, Google). You must also configure the URL where bzz can be found:
 
 ```javascript
   AuthServiceProvider.init({
@@ -75,7 +86,10 @@ angular.module('myWebApp', [
   // ...
   'bzz.auth'
 ]).config(function($routeProvider, /* ... */, $httpProvider, AuthServiceProvider) {
-  // $routeProvider ...
+  $routeProvider.when('/needs-authentication', {
+    controller: function() {},
+    requiresAuthentication: true
+  });
   // configuring
   AuthServiceProvider.init({
     googleClientId: 'MYGOOGLECLIENTID'
