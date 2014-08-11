@@ -114,12 +114,12 @@ So, to connect to these events, do:
 
 ```javascript
 
-  $rootScope.$on(‘bzzUserSignedIn’, function() {
-    console.log(‘Hey! I`m logged In’);
+  $rootScope.$on("bzzUserSignedIn", function() {
+    console.log("Hey! I`m logged In");
     do_something();
   });
-  $rootScope.$on(‘bzzUserSignedOut’, function() {
-    console.log(‘Hey! I`m logged Out’);
+  $rootScope.$on("bzzUserSignedOut", function() {
+    console.log("Hey! I`m logged Out");
     do_something_else();
   });
 ```
