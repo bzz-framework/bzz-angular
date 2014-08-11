@@ -103,6 +103,27 @@ angular.module('myWebApp', [
 }).run(function (AuthService) {});
 ```
 
+Signals
+-------
+
+A `bzzUserSignedIn` signal is broadcasted to Angular `$rootScope` every time a SignIn process is successful.
+
+Also, a `bzzUserSignedOut` signal is broadcasted to Angular `$rootScope` every time a SignOut process occurs too.
+
+So, to connect to these events, do:
+
+```javascript
+
+  $rootScope.$on(‘bzzUserSignedIn’, function() {
+    console.log(‘Hey! I`m logged In’);
+    do_something();
+  });
+  $rootScope.$on(‘bzzUserSignedOut’, function() {
+    console.log(‘Hey! I`m logged Out’);
+    do_something_else();
+  });
+```
+
 AuthButton Directive
 ====================
 
