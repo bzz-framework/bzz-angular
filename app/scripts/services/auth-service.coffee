@@ -41,31 +41,9 @@ class AuthService
       else
         callback() if typeof(callback) == 'function'
 
-  setSignIn: (provider, accessToken) ->
-    path = '/auth/signin/'
-    @http.post(@_getOption('bzzApiUrl') + path,
-      provider: provider
-      access_token: accessToken
-    )
-
-  setSignOut: ->
-    path = '/auth/signout/'
-    @http.post(@_getOption('bzzApiUrl') + path, '')
-
   getAuthMe: ->
     path = '/auth/me/'
     @http.get(@_getOption('bzzApiUrl') + path)
-
-  signOut: (callback) ->
-    @setSignOut().success((response) =>
-      if response.loggedOut
-        @isAuthenticated = false
-        @userData = null
-        @location.url @_getOption('loginPage')
-        if callback then callback()
-    ).error((response) =>
-      console.log 'Failed to signOut: ', response
-    )
 
   checkAuthentication: (callback) ->
     @getAuthMe().success((response) =>
@@ -81,18 +59,51 @@ class AuthService
       console.log 'Failed to check Authentication:', response
     )
 
+  _onSignedIn: ->
+    @isAuthenticated = true
+    @location.url @redirectUrl
+    @rootScope.$broadcast('bzzUserSignedIn')
+
+  setSignIn: (provider, accessToken) ->
+    path = '/auth/signin/'
+    @http.post(@_getOption('bzzApiUrl') + path,
+      provider: provider
+      access_token: accessToken
+    )
+
+  signIn: (provider, authResult, callback) ->
+    @setSignIn(provider, authResult.access_token).then((response) =>
+      if response.data.authenticated
+        @_onSignedIn()
+        if callback then callback()
+      else
+        @signOut(callback)
+    , =>
+      @signOut(callback)
+    )
+
+  _onSignedOut: ->
+    @isAuthenticated = false
+    @userData = null
+    @location.url @_getOption('loginPage')
+    @rootScope.$broadcast('bzzUserSignedOut')
+
+  setSignOut: ->
+    path = '/auth/signout/'
+    @http.post(@_getOption('bzzApiUrl') + path, '')
+
+  signOut: (callback) ->
+    @setSignOut().success((response) =>
+      if response.loggedOut
+        @_onSignedOut()
+        if callback then callback()
+    ).error((response) =>
+      console.log 'Failed to signOut: ', response
+    )
+
   googleLogin: (callback) =>
     @GooglePlus.login().then((authResult) =>
-      @setSignIn('google', authResult.access_token).then((response) =>
-        if response.data.authenticated
-          @isAuthenticated = true
-          @location.url @redirectUrl
-          if callback then callback()
-        else
-          @signOut(callback)
-      , =>
-        @signOut(callback)
-      )
+      @signIn('google', authResult, callback)
     , (err) =>
       @signOut(callback)
     )

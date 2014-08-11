@@ -214,6 +214,22 @@ describe 'Service: AuthService', ->
     )
     httpBackend.flush()
 
+  async.it 'should broadcast a signedout signal after signout proccess', (done) ->
+    authService.rootScope.$on('bzzUserSignedOut', ->
+      expect(authService.isAuthenticated).toEqual false
+      expect(authService.userData).toEqual null
+      done()
+    )
+    authService._onSignedOut()
+
+  async.it 'should broadcast a signedin signal after signin proccess', (done) ->
+    authService.rootScope.$on('bzzUserSignedIn', ->
+      expect(authService.isAuthenticated).toEqual true
+      done()
+    )
+    authService._onSignedIn()
+
+
 describe 'Service: AuthService on Routes', ->
 
   async = new AsyncSpec @
